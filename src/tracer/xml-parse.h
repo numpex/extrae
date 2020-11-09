@@ -90,8 +90,6 @@
 #define TRACE_THRESHOLD                 ((xmlChar*) "threshold")
 #define TRACE_NETWORK                   ((xmlChar*) "network")
 #define TRACE_MPI_STATISTICS            ((xmlChar*) "mpi-statistics")
-#define TRACE_RUSAGE                    ((xmlChar*) "resource-usage")
-#define TRACE_MEMUSAGE                  ((xmlChar*) "memory-usage")
 #define TRACE_DYNAMIC_MEMORY            ((xmlChar*) "dynamic-memory")
 #define TRACE_DYNAMIC_MEMORY_ALLOC      ((xmlChar*) "alloc")
 #define TRACE_DYNAMIC_MEMORY_ALLOC_THRESHOLD   ((xmlChar*) "threshold")
@@ -171,11 +169,22 @@
 #define TRACE_PEBS_SAMPLING_LOAD_L3Ms           ((xmlChar*) "load-l3-misses")
 #define TRACE_PEBS_MIN_MEM_LATENCY              ((xmlChar*) "minimum-latency")
 
-#define TRACE_CPU_EVENTS		((xmlChar*) "cpu-events")
-#define TRACE_CPU_EVENTS_FREQUENCY	((xmlChar*) "frequency")
-#define TRACE_CPU_EVENTS_EMIT_ALWAYS    ((xmlChar*) "emit-always")
+#define TRACE_CPU_EVENTS                        ((xmlChar*) "cpu-events")
+#define TRACE_CPU_EVENTS_FREQUENCY              ((xmlChar*) "frequency")
+#define TRACE_CPU_EVENTS_EMIT_ALWAYS            ((xmlChar*) "emit-always")
 
-#define TRACE_OPENACC                   ((xmlChar*) "openacc")
+#define TRACE_OPENACC                           ((xmlChar*) "openacc")
+
+#define TRACE_PLUGIN                        ((xmlChar*) "plugin")
+#define XML_SO_NAME                         ((xmlChar*) "so")
+#define XML_WHEN                            ((xmlChar*) "when")
+#define XML_LEVEL                           ((xmlChar*) "level")
+#define XML_APP_LEVEL                       ((xmlChar*) "app")
+#define XML_NODE_LEVEL                      ((xmlChar*) "node")
+#define XML_TASK_LEVEL                      ((xmlChar*) "task")
+#define XML_READ_AT_FLUSH                   ((xmlChar*) "flush")
+#define XML_READ_AT_INI                     ((xmlChar*) "ini")
+#define XML_READ_AT_FIN                     ((xmlChar*) "fin")
 
 short int Parse_XML_File (int rank, int world_size, const char *filename);
 

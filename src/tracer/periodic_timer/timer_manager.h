@@ -21,26 +21,45 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
-#ifndef __MISC_PRV_SEMANTICS_H__
-#define __MISC_PRV_SEMANTICS_H__
+#ifndef _TIMER_MANAGER_H_INCLUDED_
+#define _TIMER_MANAGER_H_INCLUDED_
 
-#include "record.h"
-#include "semantics.h"
-#include "file_set.h"
+#include "event_timer.h"
+#include "clock.h"
+#include "common.h"
 
-extern int MPI_Caller_Multiple_Levels_Traced;
-extern int *MPI_Caller_Labels_Used;
+typedef void (*func_ptr_t) (void);
 
-extern int Sample_Caller_Multiple_Levels_Traced;
-extern int *Sample_Caller_Labels_Used;
+typedef struct xtr_TimerNode_t xtr_TimerNode_t;
 
-extern int MPI_Stats_Events_Found;
-extern int MPI_Stats_Labels_Used[MPI_STATS_EVENTS_COUNT];
+struct xtr_TimerNode_t
+{
+	ExtraeTimer_t * timer;
+	struct xtr_TimerNode_t * next;
+	struct xtr_TimerNode_t * previous;
+};
 
-extern int Syscall_Events_Found;
-extern int Syscall_Labels_Used[SYSCALL_EVENTS_COUNT];
+enum
+{
+	CALLBACK_LVL_THREAD = 0,
+	CALLBACK_LVL_TASK,
+	CALLBACK_LVL_NODE,
+	CALLBACK_NUM_LVLS
+};
 
-extern SingleEv_Handler_t PRV_MISC_Event_Handlers[];
-extern RangeEv_Handler_t PRV_MISC_Range_Handlers[];
+typedef void * xtr_timer_t;
 
-#endif /* __MISC_PRV_SEMANTICS_H__ */
+void xtrTimerManager_Trigger(void);
+
+xtr_timer_t * xtrTimerManager_SetTimer(func_ptr_t callback_addr, int level, UINT64 period);
+
+void xtrTimerManager_SetTimerFromList(int num_callbacks, char *** callback_list, UINT64 period);
+
+void xtrTimerManager_RemoveTimer(xtr_timer_t timer);
+
+void xtrTimerManager_EnableTimers(void);
+
+void xtrTimerManager_DisableTimers(void);
+
+
+#endif

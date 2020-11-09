@@ -561,6 +561,8 @@ AC_CONFIG_FILES([
   src/tracer/sampling/common/Makefile \
   src/tracer/sampling/timer/Makefile \
   src/tracer/sampling/intel-pebs/Makefile \
+  src/tracer/periodic_timer/Makefile \
+  src/tracer/plugins/Makefile \
   src/merger/Makefile \
   src/merger/parallel/Makefile \
   src/others/Makefile \

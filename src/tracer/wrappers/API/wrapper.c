@@ -161,6 +161,7 @@
 #include "syscall_probe.h"
 #include "syscall_wrapper.h"
 #include "taskid.h"
+#include "plugin_manager.h"
 
 int Extrae_Flush_Wrapper (Buffer_t *buffer);
 
@@ -245,13 +246,6 @@ int tracejant_hwc_uf = TRUE;
 
 /*** Variable global per saber si hem d'obtenir comptador de la xarxa ****/
 int tracejant_network_hwc = FALSE;
-
-/** Store information about rusage?                                     **/
-int tracejant_rusage = FALSE;
-
-/** Store information about malloc?                                     **/
-int tracejant_memusage = FALSE;
-
 
 /**** Variable global que controla quin subset de les tasks generen o ****/
 /**** no generen trasa ***************************************************/
@@ -884,28 +878,6 @@ static int read_environment_variables (int me)
 	else
 		tracejant_hwc_mpi = FALSE;
 #endif
-
-	/* Enable rusage information? */
-	str = getenv ("EXTRAE_RUSAGE");
-	if (str != NULL && (strcmp (str, "1") == 0))
-	{
-		if (me == 0)
-			fprintf (stdout, PACKAGE_NAME": Resource usage is enabled at flush buffer.\n");
-		tracejant_rusage = TRUE;
-	}
-	else
-		tracejant_rusage = FALSE;
-
-	/* Enable memusage information? */
-	str = getenv ("EXTRAE_MEMUSAGE");
-	if (str != NULL && (strcmp (str, "1") == 0))
-	{
-		if (me == 0)
-			fprintf (stdout, PACKAGE_NAME": Memory usage is enabled at flush buffer.\n");
-		tracejant_memusage = TRUE;
-	}
-	else
-		tracejant_memusage = FALSE;
 
 #if defined(TEMPORARILY_DISABLED)
 	/* Enable network counters? */
@@ -1879,7 +1851,7 @@ int Backend_preInitialize (int me, int world_size, const char *config_file, int 
 				xfree (hwc_defs);
 			}
 		}
-	
+
 		/* Write hardware counters set definitions (i.e. those given at config time) into the .mpit files*/
 		for (set=0; set<HWC_Get_Num_Sets(); set++)
 		{
@@ -2114,8 +2086,8 @@ int Backend_postInitialize (int rank, int world_size, unsigned init_event,
 		  EMPTY,
 		  EMPTY);
 		Extrae_AnnotateTopology (TRUE, InitTime);
-		Extrae_getrusage_set_to_0_Wrapper (InitTime);
 
+		xtr_plugins_exe_callbacks(PLUGIN_READ_AT_INI);
 		TRACE_MPIINITEV (EndTime, init_event, EVT_END, EMPTY, EMPTY, EMPTY, EMPTY, GetTraceOptions());
 		Extrae_AddSyncEntryToLocalSYM (EndTime);
 		Extrae_AnnotateTopology (FALSE, EndTime);
@@ -2348,6 +2320,8 @@ int Extrae_Flush_Wrapper (Buffer_t *buffer)
 		Extrae_AnnotateTopology (TRUE, FlushEv_End.time);
 #endif
 
+		xtr_plugins_exe_callbacks(PLUGIN_READ_AT_FLUSH);
+
 		check_size = !hasMinimumTracingTime || (hasMinimumTracingTime && (TIME > MinimumTracingTime+initTracingTime));
 		if (file_size > 0 && check_size)
 		{
@@ -2368,6 +2342,9 @@ int Extrae_Flush_Wrapper (Buffer_t *buffer)
 
 void Backend_Finalize (void)
 {
+  //before settting mpitrace_on to False
+  xtr_plugins_exe_callbacks(PLUGIN_READ_AT_FIN);
+
 	// Moved here to prevent instrumentation of IO calls on our files
 	mpitrace_on = FALSE; /* Turn off tracing now */
 
@@ -2441,13 +2418,6 @@ void Backend_Finalize (void)
 		/* Stop sampling right now */
 		Extrae_setSamplingEnabled (FALSE);
 		unsetTimeSampling ();
-
-		if (THREADID == 0) 
-		{
-			TIME; // Forces a tick of the clock; if the trace doesn't have any event, the following would appear with the initialization events otherwise as they use LAST_READ_TIME
-			Extrae_getrusage_Wrapper ();
-			Extrae_memusage_Wrapper ();
-		}
 
 #if !defined(IS_BG_MACHINE)
 		Extrae_AnnotateTopology (TRUE, TIME);
@@ -2699,6 +2669,8 @@ void Backend_Leave_Instrumentation (void)
 	{
 		Extrae_AnnotateCPU(LAST_READ_TIME);
 	}
+	
+	xtrTimerManager_Trigger();
 
 	/* Change trace mode? (issue from API) */
 	if (PENDING_TRACE_MODE_CHANGE(thread) && MPI_Deepness[thread] == 0)
@@ -2892,6 +2864,55 @@ void Extrae_AddTypeValuesEntryToLocalSYM (char code_type, int type, char *descri
 	}
 	pthread_mutex_unlock(&write_local_sym_mtx);
 	#undef LINE_SIZE
+}
+
+void Extrae_AddStringEntryToGlobalSYM (char code_type, char *string )
+{
+	#define LINE_SIZE 2048
+	char line[LINE_SIZE];
+	char trace_sym[TMP_DIR_LEN];
+	char hostname[1024];
+  int write_error = 0;
+	int fd;
+
+	printf("desde Extrae_AddStringEntryToGlobalSYM %s \n", string);
+  if (THREADID == 0 && TASKID == 0)
+  {
+    if (gethostname (hostname, sizeof(hostname)) != 0)
+      sprintf (hostname, "localhost");
+
+    FileName_P(trace_sym, final_dir, appl_name, EXT_SYM);
+
+    if ((fd = open(trace_sym, O_WRONLY | O_APPEND | O_CREAT, 0644)) >= 0)
+    {
+      snprintf (line, LINE_SIZE, "%c %s", code_type, string);
+
+      /* Replace newlines in line */
+      size_t last=0;
+      for (size_t i = 0; i < strlen(line); i++)
+      {
+        if (line[i] == '\n')
+        {
+          if (( write_error = write (fd, &line[last], i-last) ) < 0)
+            break;
+          if ((write_error = write (fd, "\\n", strlen("\\n"))) < 0)
+            break;
+          last = i+1;
+        }
+      }
+      if (write_error >= 0)
+        write_error = write (fd, &line[last], strlen(line)-last);
+      if (write_error >= 0)
+        write_error = write (fd, "\n", strlen("\n"));
+
+      if (write_error < 0)
+        fprintf (stderr, PACKAGE_NAME": Error writing function definition into local symbolic file");
+
+      close (fd);
+    }
+  } 
+	#undef LINE_SIZE
+
 }
 
 void Extrae_AddFunctionDefinitionEntryToLocalSYM (char code_type, void *address,

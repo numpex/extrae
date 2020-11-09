@@ -56,6 +56,11 @@ static char UNUSED rcsid[] = "$Id$";
 #ifdef HAVE_MALLOC_H
 # include <malloc.h>
 #endif
+#ifdef HAVE_DLFCN_H
+# define __USE_GNU
+# include <dlfcn.h>
+# undef  __USE_GNU
+#endif
 
 #include "utils.h"
 #include "xalloc.h"
@@ -106,6 +111,7 @@ static char UNUSED rcsid[] = "$Id$";
 # include "openacc_wrapper.h"
 #endif
 #include "malloc_probe.h"
+#include "plugin_manager.h"
 
 /* Some global (but local in the module) variables */
 static char *temporal_d = NULL, *final_d = NULL;
@@ -1304,20 +1310,6 @@ static void Parse_XML_Counters (int rank, int world_size, xmlDocPtr xmldoc, xmlN
 			XML_FREE(enabled);
 #endif
 		}
-		else if (!xmlStrcasecmp (tag->name, TRACE_RUSAGE))
-		{
-			xmlChar *enabled = xmlGetProp_env (rank, tag, TRACE_ENABLED);
-			tracejant_rusage = (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES));
-			mfprintf (stdout, PACKAGE_NAME": Resource usage is %s at flush buffer.\n", tracejant_rusage?"enabled":"disabled");
-			XML_FREE(enabled);
-		}
-		else if (!xmlStrcasecmp (tag->name, TRACE_MEMUSAGE))
-		{
-			xmlChar *enabled = xmlGetProp_env (rank, tag, TRACE_ENABLED);
-			tracejant_memusage = (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES));
-			mfprintf (stdout, PACKAGE_NAME": Memory usage is %s at flush buffer.\n", tracejant_memusage?"enabled":"disabled");
-			XML_FREE(enabled);
-		}
 		else
 		{
 			mfprintf (stderr, PACKAGE_NAME": XML unknown tag '%s' at <Counters> level\n", tag->name);
@@ -1794,6 +1786,56 @@ static void Parse_XML_Others (int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag
 	}
 }
 
+/* 
+ * Configures resource tracing
+ */
+void Parse_XML_plugin( int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag )
+{
+  unsigned long long period = 0;
+  int num_when_values = 0;
+  int read_at = 0;
+  int level = PLUGIN_LVL_APP;
+	char **when_values;
+  xmlChar *plugin_name = xmlGetProp_env( rank, current_tag, XML_SO_NAME );
+  xmlChar *plugin_when = xmlGetProp_env( rank, current_tag, XML_WHEN );
+  xmlChar *plugin_level = xmlGetProp_env( rank, current_tag, XML_LEVEL );
+  num_when_values = __Extrae_Utils_explode ((char *)plugin_when, ",", &when_values);
+
+  //set WHEN
+  for( int i = 0; i < num_when_values; i++ )
+  {
+    if ( !xmlStrcasecmp((xmlChar *)when_values[i], XML_READ_AT_INI ) )
+      read_at = read_at | PLUGIN_READ_AT_INI;
+    else if ( !xmlStrcasecmp((xmlChar *) when_values[i], XML_READ_AT_FIN) )
+      read_at = read_at | PLUGIN_READ_AT_FIN;
+    else if ( !xmlStrcasecmp( (xmlChar *)when_values[i], XML_READ_AT_FLUSH ) )
+      read_at = read_at | PLUGIN_READ_AT_FLUSH;
+    else 
+    {
+      unsigned long long tmp_period = __Extrae_Utils_getTimeFromStr ((const char*) when_values[i], (const char *) TRACE_PERIOD, rank);
+      if (tmp_period > 0)  
+        period = tmp_period;
+    }
+  }
+  //set LEVEL
+  if ( !xmlStrcasecmp(plugin_level, XML_NODE_LEVEL ) )
+    level = PLUGIN_LVL_NODE;
+  else if ( !xmlStrcasecmp(plugin_level, XML_TASK_LEVEL ) )
+    level = PLUGIN_LVL_TASK;
+
+	printf("lvel kljadslkfjalksj from xml %d\n", level);
+
+  if(plugin_name != NULL )
+  {
+    xtr_plugin_t * plugin = xtr_plugin_load((char *)plugin_name, read_at, period, level);
+    if(plugin == NULL)
+      mfprintf (stdout, PACKAGE_NAME": %s could not be loaded.\n", plugin_name);
+  }
+  XML_FREE(plugin_name);
+  XML_FREE(plugin_when);
+  XML_FREE(plugin_level);
+}
+
 short int Parse_XML_File (int rank, int world_size, const char *filename)
 {
 	xmlNodePtr current_tag;
@@ -2230,6 +2272,14 @@ short int Parse_XML_File (int rank, int world_size, const char *filename)
 #else
 						mfprintf (stdout, PACKAGE_NAME": Warning! <%s> tag will be ignored. This library does not support OPENACC instrumentation.\n", TRACE_OPENACC);
 #endif
+					}
+					/* plugin configuration */
+					else if (!xmlStrcasecmp (current_tag->name, TRACE_PLUGIN))
+					{
+						xmlChar *enabled = xmlGetProp_env (rank, current_tag, TRACE_ENABLED);
+						if (enabled != NULL && !xmlStrcasecmp (enabled, xmlYES))
+							Parse_XML_plugin (rank, xmldoc, current_tag);
+						XML_FREE(enabled);
 					}
 					else
 					{

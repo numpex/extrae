@@ -355,7 +355,8 @@ unsigned long long __Extrae_Utils_getTimeFromStr (const char *time, const char *
 	unsigned long long MinTimeFactor;
 	char tmp_buff[256];
 	size_t strl;
-
+	int print_warning = 0;
+	unsigned long long retval = 0;
 	if (time == NULL)
 		return 0;
 
@@ -417,17 +418,28 @@ unsigned long long __Extrae_Utils_getTimeFromStr (const char *time, const char *
 			if (tmp_buff[strlen(tmp_buff)-1] >= '0'
 			&& tmp_buff[strlen(tmp_buff)-1] <= '9'
 			&& rank == 0)
-				fprintf (stdout,
-					PACKAGE_NAME": Warning! %s time units not specified. Using seconds\n", envvar);
-			else
 			{
-				if (rank == 0)
-					fprintf (stdout, PACKAGE_NAME": Warning! %s time units unknown! Using seconds\n", envvar);
+				print_warning = TIME_UNITS_UNKNOWN;
+			}
+			else if (rank == 0)
+			{
+				print_warning = TIME_UNITS_UNSPECIFIED;
 			}
 			break;
 		}
 
-		return atoll (tmp_buff) * MinTimeFactor;
+		retval = atoll (tmp_buff) * MinTimeFactor;
+		
+		if(retval > 0 && print_warning == TIME_UNITS_UNKNOWN )
+		{
+			fprintf (stdout,
+					PACKAGE_NAME": Warning! %s time units not specified. Using seconds\n", envvar);
+		}
+		else if(retval > 0 && print_warning == TIME_UNITS_UNSPECIFIED)
+		{
+			fprintf (stdout, PACKAGE_NAME": Warning! %s time units unknown! Using seconds\n", envvar);
+		}
+		return retval;
 }
 
 /******************************************************************************

@@ -21,26 +21,87 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
-#ifndef __MISC_PRV_SEMANTICS_H__
-#define __MISC_PRV_SEMANTICS_H__
+#ifndef __PLUGIN_MANAGER_H__
+#define __PLUGIN_MANAGER_H__
 
-#include "record.h"
-#include "semantics.h"
-#include "file_set.h"
+#include <stdlib.h>
+#include "timer_manager.h"
 
-extern int MPI_Caller_Multiple_Levels_Traced;
-extern int *MPI_Caller_Labels_Used;
+#define INIT_FUNC_NAME "Extrae_plugin_init"
+#define READ_FUNC_NAME "Extrae_plugin_read"
 
-extern int Sample_Caller_Multiple_Levels_Traced;
-extern int *Sample_Caller_Labels_Used;
+typedef void (*func_ptr_t) (void);
 
-extern int MPI_Stats_Events_Found;
-extern int MPI_Stats_Labels_Used[MPI_STATS_EVENTS_COUNT];
+struct callbacks_t
+{
+	void (*init_function) (char **);
+	func_ptr_t read_function;
+	func_ptr_t fini_function;
+};
 
-extern int Syscall_Events_Found;
-extern int Syscall_Labels_Used[SYSCALL_EVENTS_COUNT];
+typedef struct callbacks_t callbacks_t;
 
-extern SingleEv_Handler_t PRV_MISC_Event_Handlers[];
-extern RangeEv_Handler_t PRV_MISC_Range_Handlers[];
+/* call callback read at */
+enum
+{
+	PLUGIN_NOREAD,
+	PLUGIN_READ_AT_INI = 0x1,
+	PLUGIN_READ_AT_FIN = 0x2,
+	PLUGIN_READ_AT_FLUSH = 0x4
+};
 
-#endif /* __MISC_PRV_SEMANTICS_H__ */
+/* callback level */
+enum
+{
+  PLUGIN_LVL_APP,
+	PLUGIN_LVL_NODE,
+	PLUGIN_LVL_TASK,
+	PLUGIN_LVL_THREAD
+};
+
+/* callback type */
+enum
+{
+	CALLBACK_INIT,
+	CALLBACK_READ,
+	CALLBACK_FINI
+};
+
+enum
+{
+  ERROR = -1,
+  SUCCESS
+};
+
+typedef struct 
+{
+	void * dl_handle;
+	int initialized;
+	int read_at;
+	int period;
+	xtr_timer_t * timer_handle;
+	callbacks_t callbacks;
+	int level;
+} xtr_plugin_info_t;
+
+typedef struct xtr_plugin_t xtr_plugin_t;
+
+struct xtr_plugin_t
+{
+	xtr_plugin_info_t info;
+	struct xtr_plugin_t * next;
+	struct xtr_plugin_t * previous;
+};
+
+#define GET_READ_FN(xtr_plugin) (xtr_plugin->info.callbacks.read_function)
+#define GET_INIT_FN(xtr_plugin) (xtr_plugin->info.callbacks.init_function)
+
+xtr_plugin_t * xtr_plugin_load(char * so_name, int read_at, UINT64 period, int level);
+
+void xtr_plugins_exe_callbacks(int read_at);
+
+void xtr_plugin_disable(xtr_plugin_t * plugin);
+
+void xtr_plugin_enable(xtr_plugin_t * plugin);
+
+#endif /* __PLUGIN_MANAGER_H__ */

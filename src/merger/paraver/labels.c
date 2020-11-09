@@ -181,33 +181,6 @@ struct color_t gradient_inf[GRADIENT_NUMBER] = {
   {GRADIENT_14, GRADIENT14_LBL, GRADIENT14_COLOR}
 };
 
-struct rusage_evt_t rusage_evt_labels[RUSAGE_EVENTS_COUNT] = {
-   { RUSAGE_UTIME_EV, RUSAGE_UTIME_LBL },
-   { RUSAGE_STIME_EV, RUSAGE_STIME_LBL },
-   { RUSAGE_MAXRSS_EV,   RUSAGE_MAXRSS_LBL },
-   { RUSAGE_IXRSS_EV,    RUSAGE_IXRSS_LBL },
-   { RUSAGE_IDRSS_EV,    RUSAGE_IDRSS_LBL },
-   { RUSAGE_ISRSS_EV,    RUSAGE_ISRSS_LBL },
-   { RUSAGE_MINFLT_EV,   RUSAGE_MINFLT_LBL },
-   { RUSAGE_MAJFLT_EV,   RUSAGE_MAJFLT_LBL },
-   { RUSAGE_NSWAP_EV,    RUSAGE_NSWAP_LBL },
-   { RUSAGE_INBLOCK_EV,  RUSAGE_INBLOCK_LBL },
-   { RUSAGE_OUBLOCK_EV,  RUSAGE_OUBLOCK_LBL },
-   { RUSAGE_MSGSND_EV,   RUSAGE_MSGSND_LBL },
-   { RUSAGE_MSGRCV_EV,   RUSAGE_MSGRCV_LBL },
-   { RUSAGE_NSIGNALS_EV, RUSAGE_NSIGNALS_LBL },
-   { RUSAGE_NVCSW_EV,    RUSAGE_NVCSW_LBL },
-   { RUSAGE_NIVCSW_EV,   RUSAGE_NIVCSW_LBL }
-};
-
-struct memusage_evt_t memusage_evt_labels[MEMUSAGE_EVENTS_COUNT] = {
-   { MEMUSAGE_ARENA_EV, MEMUSAGE_ARENA_LBL },
-   { MEMUSAGE_HBLKHD_EV, MEMUSAGE_HBLKHD_LBL },
-   { MEMUSAGE_UORDBLKS_EV, MEMUSAGE_UORDBLKS_LBL },
-   { MEMUSAGE_FORDBLKS_EV, MEMUSAGE_FORDBLKS_LBL },
-   { MEMUSAGE_INUSE_EV, MEMUSAGE_INUSE_LBL }
-};
-
 struct mpi_stats_evt_t mpi_stats_evt_labels[MPI_STATS_EVENTS_COUNT] = {
    /* Original stats */
    { MPI_STATS_P2P_COUNT_EV, MPI_STATS_P2P_COUNT_LBL },
@@ -397,60 +370,6 @@ static void HWC_PARAVER_Labels (FILE *pcfFD)
 
 #endif /* USE_HARDWARE_COUNTERS */
 
-
-static char * Rusage_Event_Label (int rusage_evt) {
-   int i;
-
-   for (i=0; i<RUSAGE_EVENTS_COUNT; i++) {
-      if (rusage_evt_labels[i].evt_type == rusage_evt) {
-         return rusage_evt_labels[i].label;
-      }
-   }
-   return "Unknown getrusage event";
-}
-
-static void Write_rusage_Labels (FILE * pcf_fd)
-{
-   int i;
-
-   if (Rusage_Events_Found) {
-      fprintf (pcf_fd, "%s\n", TYPE_LABEL);
-
-      for (i=0; i<RUSAGE_EVENTS_COUNT; i++) {
-         if (GetRusage_Labels_Used[i]) {
-            fprintf(pcf_fd, "0    %d    %s\n", RUSAGE_BASE+i, Rusage_Event_Label(i));
-         }
-      }
-      LET_SPACES (pcf_fd);
-   }
-}
-
-static char * Memusage_Event_Label (int memusage_evt) {
-	int i;
-	
-	for (i=0; i<MEMUSAGE_EVENTS_COUNT; i++) {
-		if (memusage_evt_labels[i].evt_type == memusage_evt) {
-			return memusage_evt_labels[i].label;
-		}
-	}
-	return "Unknown memusage event";
-}
-
-static void Write_memusage_Labels (FILE * pcf_fd)
-{
-   int i;
-
-   if (Memusage_Events_Found) {
-      fprintf (pcf_fd, "%s\n", TYPE_LABEL);
-
-      for (i=0; i<MEMUSAGE_EVENTS_COUNT; i++) {
-         if (Memusage_Labels_Used[i]) {
-            fprintf(pcf_fd, "0    %d    %s\n", MEMUSAGE_BASE+i, Memusage_Event_Label(i));
-         }
-      }
-      LET_SPACES (pcf_fd);
-   }
-}
 
 static char * MPI_Stats_Event_Label (int mpi_stats_evt)
 {
@@ -914,7 +833,13 @@ void Labels_loadSYMfile (int taskid, int allobjects, unsigned ptask,
 					sync_points_seen ++;
 					break;
 				}
-
+				/* 'M' entries are for metadata information, the content is given by the user
+				 * we don't have to process these entries
+				 */ 
+				case 'M':
+				{
+					break;
+				}
 				default:
 				{
 					fprintf (stderr, PACKAGE_NAME" mpi2prv: Error! Task %d found unexpected line in symbol file '%s'\n", taskid, LINE);
@@ -1067,8 +992,6 @@ int Labels_GeneratePCFfile (char *name, long long options)
 # endif
 #endif
 
-	Write_rusage_Labels (fd);
-	Write_memusage_Labels (fd);
 	Write_MPI_Stats_Labels (fd);
 	Write_Trace_Mode_Labels (fd);
 	Write_Clustering_Labels (fd);

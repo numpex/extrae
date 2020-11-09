@@ -65,4 +65,8 @@ int xtr_random(void);
 # define DBG(x, ...) fprintf(stderr, "DEBUG: " x, ##__VA_ARGS__)
 #endif
 
+#define TIME_UNITS_UNKNOWN 1
+#define TIME_UNITS_UNSPECIFIED 2
+
+
 #endif /* __UTILS_H__ */

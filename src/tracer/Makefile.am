@@ -1,6 +1,6 @@
 include $(top_srcdir)/PATHS
 
-SUBDIRS = clocks hwc interfaces wrappers stats sampling
+SUBDIRS = clocks hwc interfaces wrappers stats sampling periodic_timer plugins
 
 if HAVE_ONLINE
   SUBDIRS += online
@@ -378,7 +378,13 @@ else
  INTERFACE_API = $(INTERFACES_LIB)/API/libiface_api.la
 endif
 
-# Apply these to BGQ and other non-BG machines
+#
+# Add event timer --- move later
+#
+core_MODULES += \
+ periodic_timer/libevent_timer.la
+
+#Apply these to BGQ and other non-BG machines
 
 if IS_BG_MACHINE
 if IS_BGQ_MACHINE
@@ -581,6 +587,9 @@ core_INCLUDES = \
  -I$(WRAPPERS_INC)/GASPI \
  -I$(SAMPLING_DIR)/common \
  -I$(top_srcdir) -I$(top_srcdir)/include -I$(COMMON_INC) $(UNWIND_CFLAGS)
+
+core_INCLUDES += -I$(TIMER_DIR)
+core_INCLUDES += -I$(PLUGINS_DIR)
 
 if HAVE_PAPI
 if !HAVE_PAPI_EMBEDDED

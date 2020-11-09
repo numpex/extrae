@@ -358,41 +358,6 @@ extern struct color_t states_inf[STATES_NUMBER];
 #define GRADIENT_NUMBER       15
 extern struct color_t gradient_inf[GRADIENT_NUMBER];
 
-typedef struct rusage_evt_t {
-	int evt_type;
-	char * label;
-} rusage_evt_t;
-
-#define RUSAGE_UTIME_LBL    "User time used"
-#define RUSAGE_STIME_LBL    "System time used"
-#define RUSAGE_MAXRSS_LBL   "Maximum resident set size (in kilobytes)"
-#define RUSAGE_IXRSS_LBL    "Text segment memory shared with other processes (kilobyte-seconds)"
-#define RUSAGE_IDRSS_LBL    "Data segment memory used (kilobyte-seconds)"
-#define RUSAGE_ISRSS_LBL    "Stack memory used (kilobyte-seconds)"
-#define RUSAGE_MINFLT_LBL   "Soft page faults"
-#define RUSAGE_MAJFLT_LBL   "Hard page faults"
-#define RUSAGE_NSWAP_LBL    "Times a process was swapped out of physical memory"
-#define RUSAGE_INBLOCK_LBL  "Input operations via the file system"
-#define RUSAGE_OUBLOCK_LBL  "Output operations via the file system"
-#define RUSAGE_MSGSND_LBL   "IPC messages sent"
-#define RUSAGE_MSGRCV_LBL   "IPC messages received"
-#define RUSAGE_NSIGNALS_LBL "Signals delivered"
-#define RUSAGE_NVCSW_LBL    "Voluntary context switches"
-#define RUSAGE_NIVCSW_LBL   "Involuntary context switches"
-extern struct rusage_evt_t rusage_evt_labels[RUSAGE_EVENTS_COUNT];
-
-typedef struct memusage_evt_t {
-	int evt_type;
-	char * label;
-} memusage_evt_t;
-
-#define MEMUSAGE_ARENA_LBL		"Total bytes allocated with brk/sbrk"
-#define MEMUSAGE_HBLKHD_LBL		"Total bytes allocated with mmap"
-#define MEMUSAGE_UORDBLKS_LBL	"Total sbrk memory in use"
-#define MEMUSAGE_FORDBLKS_LBL	"Total sbrk memory free"
-#define MEMUSAGE_INUSE_LBL		"Total memory in use"
-extern struct memusage_evt_t memusage_evt_labels[MEMUSAGE_EVENTS_COUNT];
-
 typedef struct mpi_stats_evt_t
 {
 	int evt_type;

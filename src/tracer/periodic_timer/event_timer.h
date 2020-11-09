@@ -21,26 +21,47 @@
  *   Barcelona Supercomputing Center - Centro Nacional de Supercomputacion   *
 \*****************************************************************************/
 
-#ifndef __MISC_PRV_SEMANTICS_H__
-#define __MISC_PRV_SEMANTICS_H__
+#ifndef _EVENT_TIMER_H_INCLUDED_
+#define _EVENT_TIMER_H_INCLUDED_
 
-#include "record.h"
-#include "semantics.h"
-#include "file_set.h"
+typedef void (*func_ptr_t) (void);
 
-extern int MPI_Caller_Multiple_Levels_Traced;
-extern int *MPI_Caller_Labels_Used;
+typedef struct xtr_cbk_node_t xtr_cbk_node_t;
 
-extern int Sample_Caller_Multiple_Levels_Traced;
-extern int *Sample_Caller_Labels_Used;
+struct xtr_cbk_node_t
+{
+	func_ptr_t callback;
+	struct xtr_cbk_node_t * next;
+	struct xtr_cbk_node_t * previous;
+};
 
-extern int MPI_Stats_Events_Found;
-extern int MPI_Stats_Labels_Used[MPI_STATS_EVENTS_COUNT];
+struct ExtraeTimer
+{
+  UINT64 lastEmissionTime;
+  UINT64 timerPeriod;
+  int numCallbaks;
+  int allocatedSize;
+  xtr_cbk_node_t * callbacksList;
+  xtr_cbk_node_t * freeNodes;
+  xtr_cbk_node_t * allocatedRegion;
+};
 
-extern int Syscall_Events_Found;
-extern int Syscall_Labels_Used[SYSCALL_EVENTS_COUNT];
+typedef struct ExtraeTimer ExtraeTimer_t;
 
-extern SingleEv_Handler_t PRV_MISC_Event_Handlers[];
-extern RangeEv_Handler_t PRV_MISC_Range_Handlers[];
+ExtraeTimer_t * xtrPeriodicEvTimer_NewTimer(UINT64 period);
+void xtrPeriodicEvTimer_DeleteTimer(ExtraeTimer_t * Etimer);
+void xtrEventTimer_AddCallbackList(ExtraeTimer_t * Etimer, int num_callbacks, func_ptr_t * function_list);
+xtr_cbk_node_t * xtrPeriodicEvTimer_AddSingleCallback(ExtraeTimer_t * Etimer, func_ptr_t callback);
+void xtrPeriodicEvTimer_CallFuncs(ExtraeTimer_t * Etimer);
+int xtrPeriodicEvTimer_TreatEvTimers(ExtraeTimer_t * Etimer);
 
-#endif /* __MISC_PRV_SEMANTICS_H__ */
+void xtrPeriodicEvTimer_TriggerCallbacks(ExtraeTimer_t * Etimer);
+
+UINT64 xtrPeriodicEvTimer_GetPeriod(ExtraeTimer_t * Etimer);
+xtr_cbk_node_t * xtrPeriodicEvTimer_GetCallbackList (ExtraeTimer_t * Etimer);
+
+void xtrPeriodicEvTimer_removeCallback(xtr_cbk_node_t * cbk_node, ExtraeTimer_t * Etimer);
+
+#endif
+
+

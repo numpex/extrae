@@ -164,13 +164,6 @@ extern int tracejant_hwc_uf;
 extern int tracejant_network_hwc;
 #define TRACING_NETWORK_HWC (tracejant_network_hwc)
 
-/* Obtain information about RUSAGE ? */
-extern int tracejant_rusage;
-#define TRACING_RUSAGE (tracejant_rusage)
-
-/* Obtain information about MALLOC ? */
-extern int tracejant_memusage;
-#define TRACING_MEMUSAGE (tracejant_memusage)
 
 extern unsigned long long MinimumTracingTime;
 extern int hasMinimumTracingTime;
@@ -203,6 +196,8 @@ void Extrae_AddTypeValuesEntryToLocalSYM (char code_type, int type, char *descri
 	char **description_values);
 void Extrae_AddFunctionDefinitionEntryToLocalSYM (char code_type, void *address,
 	char *functionname, char *modulename, unsigned fileline);
+
+void Extrae_AddStringEntryToGlobalSYM (char code_type, char *string );
 
 void setRequestedDynamicMemoryInstrumentation (int b);
 void setRequestedIOInstrumentation (int b);
