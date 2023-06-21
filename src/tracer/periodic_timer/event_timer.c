@@ -24,7 +24,7 @@
 #include "common.h"
 #include "event_timer.h"
 #include "xalloc.h"
-
+#include "taskid.h"
 #define DEFAULT_N_ELEMS 4
 
 static void _xtr_add_newFreeNodes(xtr_cbk_node_t * allocatedRegion, int oldSize, int newSize, xtr_cbk_node_t** freeNodes)
@@ -79,25 +79,9 @@ ExtraeTimer_t * xtrPeriodicEvTimer_NewTimer(UINT64 period)
  */
 void xtrPeriodicEvTimer_DeleteTimer(ExtraeTimer_t * Etimer)
 {
-	printf("hola %p \n", Etimer);
 	xfree(Etimer->allocatedRegion);
 	xfree(Etimer);
 	Etimer = NULL;
-}
-
-/**
- * * Adds a callback function to a previously allocated Event Timer
- * @param Etimer Event Timer
- * @param num_callbacks number of callback functions to be added
- * @param function_list list of callback function to be added
- * ! these functions are called with no parameter
- */
-void xtrEventTimer_AddCallbackList(ExtraeTimer_t * Etimer, int num_callbacks, func_ptr_t * function_list)
-{
-	for (int i=0; i< num_callbacks; ++i)
-	{
-		xtrPeriodicEvTimer_AddSingleCallback(Etimer, function_list[i]);
-	}
 }
 
 static inline void _xtr_add_node (xtr_cbk_node_t * node, xtr_cbk_node_t ** list_head)
@@ -152,7 +136,7 @@ static inline xtr_cbk_node_t * _xtr_getFreeNode(xtr_cbk_node_t ** freeNodes)
 	return node;
 }
 
-xtr_cbk_node_t * xtrPeriodicEvTimer_AddSingleCallback(ExtraeTimer_t * Etimer, func_ptr_t callback)
+xtr_cbk_node_t * xtrPeriodicEvTimer_addCallback(ExtraeTimer_t * Etimer, func_ptr_t callback)
 {
 
 	// resize allocatedRegion if we have reached the limit
@@ -179,53 +163,33 @@ xtr_cbk_node_t * xtrPeriodicEvTimer_AddSingleCallback(ExtraeTimer_t * Etimer, fu
 }
 
 /**
- * * calls the function asociated with the Event Timer
- * @param Etimer Event Timer
- * ! these functions are called with no parameter
- */
-void xtrPeriodicEvTimer_CallFuncs(ExtraeTimer_t * Etimer)
-{
-	xtr_cbk_node_t * node = Etimer->callbacksList;
-	while (node != NULL)
-	{
-		// no need to check if not null
-		node->callback();
-
-		node = node->next;
-	}
-}
-
-/**
  * * checks if timer has expired and works acordingly
  * @param Etimer Event Timer
  */
 int xtrPeriodicEvTimer_TreatEvTimers(ExtraeTimer_t * Etimer)
 {
+	xtr_cbk_node_t * node;
 	UINT64 current_time = LAST_READ_TIME;
 	UINT64 delta = current_time - Etimer->lastEmissionTime;
 	if(Etimer->timerPeriod <= delta)
 	{
-		xtrPeriodicEvTimer_CallFuncs(Etimer);
+		node = Etimer->callbacksList;
+		while (node != NULL)
+		{
+			// no need to check if not null
+
+			node->callback();
+			node = node->next;
+		}
 		Etimer->lastEmissionTime = current_time;
 		return TRUE;
 	}
 	return FALSE;
 }
 
-void xtrPeriodicEvTimer_TriggerCallbacks(ExtraeTimer_t * Etimer)
-{
-	xtrPeriodicEvTimer_CallFuncs(Etimer);
-	Etimer->lastEmissionTime = LAST_READ_TIME;
-}
-
 UINT64 xtrPeriodicEvTimer_GetPeriod(ExtraeTimer_t * Etimer)
 {
 	return Etimer->timerPeriod;
-}
-
-xtr_cbk_node_t * xtrPeriodicEvTimer_GetCallbackList (ExtraeTimer_t * Etimer)
-{
-	return Etimer->callbacksList;
 }
 
 void xtrPeriodicEvTimer_removeCallback(xtr_cbk_node_t * cbk_node, ExtraeTimer_t * Etimer)

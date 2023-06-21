@@ -39,27 +39,16 @@ struct xtr_TimerNode_t
 	struct xtr_TimerNode_t * previous;
 };
 
-enum
-{
-	CALLBACK_LVL_THREAD = 0,
-	CALLBACK_LVL_TASK,
-	CALLBACK_LVL_NODE,
-	CALLBACK_NUM_LVLS
-};
-
 typedef void * xtr_timer_t;
 
-void xtrTimerManager_Trigger(void);
+xtr_timer_t * xtr_timer_configure(func_ptr_t callback_addr, int level, UINT64 period);
 
-xtr_timer_t * xtrTimerManager_SetTimer(func_ptr_t callback_addr, int level, UINT64 period);
-
-void xtrTimerManager_SetTimerFromList(int num_callbacks, char *** callback_list, UINT64 period);
-
-void xtrTimerManager_RemoveTimer(xtr_timer_t timer);
+void xtr_timer_evaluate(void);
 
 void xtrTimerManager_EnableTimers(void);
 
 void xtrTimerManager_DisableTimers(void);
 
+void xtrTimerManager_RemoveTimer(xtr_timer_t timer);
 
 #endif

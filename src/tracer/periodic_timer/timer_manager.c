@@ -28,16 +28,17 @@
 #include "timer_manager.h"
 #include "utils.h"
 #include "wrapper.h"
+#include "plugin_utils.h"
 
 int timersEnabled = 0;
 
 int *in_timer_trigger = NULL;
 
-xtr_TimerNode_t * enabled_timers[CALLBACK_NUM_LVLS] = { NULL };
+xtr_TimerNode_t * enabled_timers[PLUGIN_NUM_LVLS] = { NULL };
 
 // return 1 if found, else 0, node_position will hold the position of the node with the matching period if found
 // otherwise the previous node 
-static inline int _xtr_timers_find_position (int level, UINT64 period, xtr_TimerNode_t ** node_position)
+static inline int _find_position (int level, UINT64 period, xtr_TimerNode_t ** node_position)
 {
 	xtr_TimerNode_t * node = enabled_timers[level];
 	xtr_TimerNode_t * last_node = NULL;
@@ -64,7 +65,7 @@ static inline int _xtr_timers_find_position (int level, UINT64 period, xtr_Timer
 	return FALSE;
 }
 
-static inline void _xtr_timers_insert_node (xtr_TimerNode_t * node, xtr_TimerNode_t * previous_node, int level)
+static inline void _insert_node (xtr_TimerNode_t * node, xtr_TimerNode_t * previous_node, int level)
 {
 	node->previous = previous_node;
 	node->next = (previous_node == NULL)? NULL : previous_node->next;
@@ -108,53 +109,50 @@ void xtrTimerManager_EnableTimers(void)
  *                      These are the function names, they must be translated by xtrTranslateToCallbackAddr
  * @param period timer expiration period value (nanoseconds)
  */
-xtr_timer_t * xtrTimerManager_SetTimer(func_ptr_t callback_addr, int level, UINT64 period)
+xtr_timer_t * xtr_timer_configure(func_ptr_t callback_addr, int level, UINT64 period)
 {
   xtrTimerManager_EnableTimers();
 	xtr_timer_t * retHandle = NULL;
+	xtr_TimerNode_t * new_node = NULL;
 
 	// find if there is a timer with the same period
 	// otherwise allocate one
 	xtr_TimerNode_t * node = NULL;
-	int found = _xtr_timers_find_position(level, period, &node);
+	int found = _find_position(level, period, &node);
 	if (!found)
 	{
-		xtr_TimerNode_t * new_node = NULL;
 		new_node = (xtr_TimerNode_t *) xmalloc(sizeof(xtr_TimerNode_t));
 		new_node->timer = xtrPeriodicEvTimer_NewTimer(period);
-		retHandle = (xtr_timer_t *) xtrPeriodicEvTimer_AddSingleCallback(new_node->timer, callback_addr);
+		retHandle = (xtr_timer_t *) xtrPeriodicEvTimer_addCallback(new_node->timer, callback_addr);
 		
-		_xtr_timers_insert_node(new_node, node, level);
-		return new_node;
+		_insert_node(new_node, node, level);
 	}
 	else
 	{
-		retHandle = (xtr_timer_t *) xtrPeriodicEvTimer_AddSingleCallback(node->timer, callback_addr);
-		return node;
+		retHandle = (xtr_timer_t *) xtrPeriodicEvTimer_addCallback(node->timer, callback_addr);
 	}
 	return retHandle;
 }
 
 int _xtr_timer_calc_lvl(int threadID, int TaskID)
 {
-  int level = CALLBACK_LVL_THREAD;
+  int level = PLUGIN_LVL_THREAD;
   if( TASKID == 0 && THREADID == 0 )
-    level = CALLBACK_LVL_NODE;
+    level = PLUGIN_LVL_APP;
   else if( THREADID == 0 )
-    level = CALLBACK_LVL_TASK;
+    level = PLUGIN_LVL_TASK;
 
   return level;
 }
 
-void xtrTimerManager_Trigger(void)
+void xtr_timer_evaluate(void)
 {
   if (timersEnabled && in_timer_trigger[THREADID] == FALSE)
   {
     in_timer_trigger[THREADID] = TRUE;
-    int level = _xtr_timer_calc_lvl(THREADID, TASKID);
-    for (int i=0; i<= level; ++i)
+    for (int level=PLUGIN_CURRENT_LEVEL; level < PLUGIN_NUM_LVLS; ++level)
     {
-      xtr_TimerNode_t * t_node = enabled_timers[i]; // el orden de los niveles importa thread 0-> task 1-> node 2
+      xtr_TimerNode_t * t_node = enabled_timers[level];
       int expired = TRUE;
       while (t_node != NULL && expired && timersEnabled)
       {

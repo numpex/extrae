@@ -2087,7 +2087,7 @@ int Backend_postInitialize (int rank, int world_size, unsigned init_event,
 		  EMPTY);
 		Extrae_AnnotateTopology (TRUE, InitTime);
 
-		xtr_plugins_exe_callbacks(PLUGIN_READ_AT_INI);
+		xtr_plugin_execute(PLUGIN_AT_INIT);
 		TRACE_MPIINITEV (EndTime, init_event, EVT_END, EMPTY, EMPTY, EMPTY, EMPTY, GetTraceOptions());
 		Extrae_AddSyncEntryToLocalSYM (EndTime);
 		Extrae_AnnotateTopology (FALSE, EndTime);
@@ -2320,7 +2320,7 @@ int Extrae_Flush_Wrapper (Buffer_t *buffer)
 		Extrae_AnnotateTopology (TRUE, FlushEv_End.time);
 #endif
 
-		xtr_plugins_exe_callbacks(PLUGIN_READ_AT_FLUSH);
+		xtr_plugin_execute(PLUGIN_AT_FLUSH);
 
 		check_size = !hasMinimumTracingTime || (hasMinimumTracingTime && (TIME > MinimumTracingTime+initTracingTime));
 		if (file_size > 0 && check_size)
@@ -2343,7 +2343,7 @@ int Extrae_Flush_Wrapper (Buffer_t *buffer)
 void Backend_Finalize (void)
 {
   //before settting mpitrace_on to False
-  xtr_plugins_exe_callbacks(PLUGIN_READ_AT_FIN);
+  xtr_plugin_execute(PLUGIN_AT_FIN);
 
 	// Moved here to prevent instrumentation of IO calls on our files
 	mpitrace_on = FALSE; /* Turn off tracing now */
@@ -2670,7 +2670,7 @@ void Backend_Leave_Instrumentation (void)
 		Extrae_AnnotateCPU(LAST_READ_TIME);
 	}
 	
-	xtrTimerManager_Trigger();
+	xtr_timer_evaluate();
 
 	/* Change trace mode? (issue from API) */
 	if (PENDING_TRACE_MODE_CHANGE(thread) && MPI_Deepness[thread] == 0)

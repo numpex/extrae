@@ -1,6 +1,7 @@
 include $(top_srcdir)/PATHS
 
 event_timer_API_SRCS = \
+ plugin_utils.h \
  event_timer.c event_timer.h \
  timer_manager.c timer_manager.h \
  plugin_manager.c plugin_manager.h

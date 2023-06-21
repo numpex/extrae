@@ -1793,23 +1793,23 @@ void Parse_XML_plugin( int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag )
 {
   unsigned long long period = 0;
   int num_when_values = 0;
-  int read_at = 0;
-  int level = PLUGIN_LVL_APP;
+  int when = 0;
+  int who = PLUGIN_LVL_APP;
 	char **when_values;
   xmlChar *plugin_name = xmlGetProp_env( rank, current_tag, XML_SO_NAME );
   xmlChar *plugin_when = xmlGetProp_env( rank, current_tag, XML_WHEN );
-  xmlChar *plugin_level = xmlGetProp_env( rank, current_tag, XML_LEVEL );
+  xmlChar *plugin_who = xmlGetProp_env( rank, current_tag, XML_WHO );
   num_when_values = __Extrae_Utils_explode ((char *)plugin_when, ",", &when_values);
 
   //set WHEN
   for( int i = 0; i < num_when_values; i++ )
   {
     if ( !xmlStrcasecmp((xmlChar *)when_values[i], XML_READ_AT_INI ) )
-      read_at = read_at | PLUGIN_READ_AT_INI;
+      when = when | PLUGIN_AT_INIT;
     else if ( !xmlStrcasecmp((xmlChar *) when_values[i], XML_READ_AT_FIN) )
-      read_at = read_at | PLUGIN_READ_AT_FIN;
+      when = when | PLUGIN_AT_FIN;
     else if ( !xmlStrcasecmp( (xmlChar *)when_values[i], XML_READ_AT_FLUSH ) )
-      read_at = read_at | PLUGIN_READ_AT_FLUSH;
+      when = when | PLUGIN_AT_FLUSH;
     else 
     {
       unsigned long long tmp_period = __Extrae_Utils_getTimeFromStr ((const char*) when_values[i], (const char *) TRACE_PERIOD, rank);
@@ -1817,23 +1817,22 @@ void Parse_XML_plugin( int rank, xmlDocPtr xmldoc, xmlNodePtr current_tag )
         period = tmp_period;
     }
   }
-  //set LEVEL
-  if ( !xmlStrcasecmp(plugin_level, XML_NODE_LEVEL ) )
-    level = PLUGIN_LVL_NODE;
-  else if ( !xmlStrcasecmp(plugin_level, XML_TASK_LEVEL ) )
-    level = PLUGIN_LVL_TASK;
 
-	printf("lvel kljadslkfjalksj from xml %d\n", level);
+  //set LEVEL
+  if ( !xmlStrcasecmp(plugin_who, XML_NODE_LEVEL ) )
+    who = PLUGIN_LVL_NODE;
+  else if ( !xmlStrcasecmp(plugin_who, XML_TASK_LEVEL ) )
+    who = PLUGIN_LVL_TASK;
 
   if(plugin_name != NULL )
   {
-    xtr_plugin_t * plugin = xtr_plugin_load((char *)plugin_name, read_at, period, level);
+    xtr_plugin_t * plugin = xtr_plugin_load((char *)plugin_name, when, period, who);
     if(plugin == NULL)
       mfprintf (stdout, PACKAGE_NAME": %s could not be loaded.\n", plugin_name);
   }
   XML_FREE(plugin_name);
   XML_FREE(plugin_when);
-  XML_FREE(plugin_level);
+  XML_FREE(plugin_who);
 }
 
 short int Parse_XML_File (int rank, int world_size, const char *filename)

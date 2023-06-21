@@ -49,17 +49,12 @@ struct ExtraeTimer
 typedef struct ExtraeTimer ExtraeTimer_t;
 
 ExtraeTimer_t * xtrPeriodicEvTimer_NewTimer(UINT64 period);
-void xtrPeriodicEvTimer_DeleteTimer(ExtraeTimer_t * Etimer);
-void xtrEventTimer_AddCallbackList(ExtraeTimer_t * Etimer, int num_callbacks, func_ptr_t * function_list);
-xtr_cbk_node_t * xtrPeriodicEvTimer_AddSingleCallback(ExtraeTimer_t * Etimer, func_ptr_t callback);
-void xtrPeriodicEvTimer_CallFuncs(ExtraeTimer_t * Etimer);
+xtr_cbk_node_t * xtrPeriodicEvTimer_addCallback(ExtraeTimer_t * Etimer, func_ptr_t callback);
 int xtrPeriodicEvTimer_TreatEvTimers(ExtraeTimer_t * Etimer);
 
-void xtrPeriodicEvTimer_TriggerCallbacks(ExtraeTimer_t * Etimer);
-
 UINT64 xtrPeriodicEvTimer_GetPeriod(ExtraeTimer_t * Etimer);
-xtr_cbk_node_t * xtrPeriodicEvTimer_GetCallbackList (ExtraeTimer_t * Etimer);
 
+void xtrPeriodicEvTimer_DeleteTimer(ExtraeTimer_t * Etimer);
 void xtrPeriodicEvTimer_removeCallback(xtr_cbk_node_t * cbk_node, ExtraeTimer_t * Etimer);
 
 #endif

@@ -26,6 +26,7 @@
 
 #include <stdlib.h>
 #include "timer_manager.h"
+#include "plugin_utils.h"
 
 #define INIT_FUNC_NAME "Extrae_plugin_init"
 #define READ_FUNC_NAME "Extrae_plugin_read"
@@ -36,7 +37,6 @@ struct callbacks_t
 {
 	void (*init_function) (char **);
 	func_ptr_t read_function;
-	func_ptr_t fini_function;
 };
 
 typedef struct callbacks_t callbacks_t;
@@ -45,19 +45,11 @@ typedef struct callbacks_t callbacks_t;
 enum
 {
 	PLUGIN_NOREAD,
-	PLUGIN_READ_AT_INI = 0x1,
-	PLUGIN_READ_AT_FIN = 0x2,
-	PLUGIN_READ_AT_FLUSH = 0x4
+	PLUGIN_AT_INIT = 0x1,
+	PLUGIN_AT_FIN = 0x2,
+	PLUGIN_AT_FLUSH = 0x4
 };
 
-/* callback level */
-enum
-{
-  PLUGIN_LVL_APP,
-	PLUGIN_LVL_NODE,
-	PLUGIN_LVL_TASK,
-	PLUGIN_LVL_THREAD
-};
 
 /* callback type */
 enum
@@ -96,9 +88,9 @@ struct xtr_plugin_t
 #define GET_READ_FN(xtr_plugin) (xtr_plugin->info.callbacks.read_function)
 #define GET_INIT_FN(xtr_plugin) (xtr_plugin->info.callbacks.init_function)
 
-xtr_plugin_t * xtr_plugin_load(char * so_name, int read_at, UINT64 period, int level);
+xtr_plugin_t * xtr_plugin_load(char * so_name, int when, UINT64 period, int who);
 
-void xtr_plugins_exe_callbacks(int read_at);
+void xtr_plugin_execute(int when);
 
 void xtr_plugin_disable(xtr_plugin_t * plugin);
 
