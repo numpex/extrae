@@ -30,11 +30,11 @@
 #include "wrapper.h"
 #include "plugin_utils.h"
 
-int timersEnabled = 0;
+__thread int timersEnabled = 0;
 
-int *in_timer_trigger = NULL;
+__thread int *in_timer_trigger = NULL;
 
-xtr_TimerNode_t * enabled_timers[PLUGIN_NUM_LVLS] = { NULL };
+__thread xtr_TimerNode_t * enabled_timers[PLUGIN_NUM_LVLS] = { NULL };
 
 // return 1 if found, else 0, node_position will hold the position of the node with the matching period if found
 // otherwise the previous node 

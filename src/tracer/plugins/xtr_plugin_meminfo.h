@@ -1,5 +1,0 @@
-#ifndef _XTR_PLUGIN_MEMINFO_H_INCLUDED_
-#define _XTR_PLUGIN_MEMINFO_H_INCLUDED_
-
-
-#endif

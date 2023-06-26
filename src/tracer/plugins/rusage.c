@@ -3,7 +3,6 @@
 #include <string.h>
 #include <sys/time.h>
 #include <sys/resource.h>
-#include "rusage.h"
 #include "extrae_user_events.h"
 #include "extrae_plugins.h"
 

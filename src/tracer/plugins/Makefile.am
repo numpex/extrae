@@ -1,41 +1,43 @@
 include $(top_srcdir)/PATHS
 
-rusage_plugin_SOURCES = \
-   rusage.c rusage.h extrae_plugins.h
+rusage_SOURCES = rusage.c extrae_plugins.h
+rusage_INCLUDES = -I$(INCLUDE_DIR)
 
-rusage_plugin_INCLUDES = \
-   -I$(INCLUDE_DIR)
+mallinfo_SOURCES = mallinfo.c extrae_plugins.h
+mallinfo_INCLUDES = -I$(INCLUDE_DIR)
 
+meminfo_SOURCES = meminfo.c extrae_plugins.h
+meminfo_INCLUDES = -I$(INCLUDE_DIR)
 
-memusage_plugin_SOURCES = \
-   memusage.c memusage.h extrae_plugins.h
-
-memusage_plugin_INCLUDES = \
-   -I$(INCLUDE_DIR)
-
-meminfo_plugin_SOURCES = \
-   xtr_plugin_meminfo.c xtr_plugin_meminfo.h extrae_plugins.h
-
-meminfo_plugin_INCLUDES = \
-   -I$(INCLUDE_DIR)
+cpuinfo_SOURCES = cpuinfo.c extrae_plugins.h
+cpuinfo_INCLUDES = -I$(INCLUDE_DIR)
 
 lib_LTLIBRARIES = librusage.la
-lib_LTLIBRARIES += libmemusage.la
+lib_LTLIBRARIES += libmallinfo.la
 lib_LTLIBRARIES += libmeminfo.la
+lib_LTLIBRARIES += libcpuinfo.la
 
+libmallinfo_la_SOURCES = $(mallinfo_SOURCES)
+libmallinfo_la_CFLAGS  = $(mallinfo_INCLUDES)
+# libmallinfo_la_LDFLAGS = -module -avoid-version
 
-libmemusage_la_SOURCES = $(memusage_plugin_SOURCES)
-libmemusage_la_CFLAGS  = $(memusage_plugin_INCLUDES)
-# libmemusage_la_LIBADD = $(TRACER_LIB)/interfaces/API/libiface_api.la
-# libmemusage_la_LDFLAGS = -release $(PACKAGE_VERSION)
+librusage_la_SOURCES = $(rusage_SOURCES)
+librusage_la_CFLAGS  = $(rusage_INCLUDES)
 
+libmeminfo_la_SOURCES = $(meminfo_SOURCES)
+libmeminfo_la_CFLAGS  = $(meminfo_INCLUDES)
 
-librusage_la_SOURCES = $(rusage_plugin_SOURCES)
-librusage_la_CFLAGS  = $(rusage_plugin_INCLUDES)
-# librusage_la_LIBADD = $(TRACER_LIB)/interfaces/API/libiface_api.la
-# librusage_la_LDFLAGS = -release $(PACKAGE_VERSION)
+libcpuinfo_la_SOURCES = $(cpuinfo_SOURCES)
+libcpuinfo_la_CFLAGS  = $(cpuinfo_INCLUDES)
 
-libmeminfo_la_SOURCES = $(meminfo_plugin_SOURCES)
-libmeminfo_la_CFLAGS  = $(meminfo_plugin_INCLUDES)
-# libmeminfo_la_LIBADD = $(TRACER_LIB)/interfaces/API/libiface_api.la
-# libmeminfo_la_LDFLAGS = -release $(PACKAGE_VERSION)
+install-exec-hook:
+	mkdir -p $(DESTDIR)$(datadir)/plugins
+	cp $(includedir)/extrae_plugins.h $(DESTDIR)$(datadir)/plugins
+	cp $(srcdir)/cpuinfo.c $(DESTDIR)$(datadir)/plugins
+	cp $(srcdir)/mallinfo.c $(DESTDIR)$(datadir)/plugins
+	cp $(srcdir)/meminfo.c $(DESTDIR)$(datadir)/plugins
+	cp $(srcdir)/rusage.c $(DESTDIR)$(datadir)/plugins
+	cp $(libdir)/libmallinfo.so $(DESTDIR)$(datadir)/plugins
+	cp $(libdir)/libmeminfo.so $(DESTDIR)$(datadir)/plugins
+	cp $(libdir)/librusage.so $(DESTDIR)$(datadir)/plugins
+	cp $(libdir)/libcpuinfo.so $(DESTDIR)$(datadir)/plugins

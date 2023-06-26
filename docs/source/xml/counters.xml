@@ -11,3 +11,20 @@
   <network enabled="yes" />
   <resource-usage enabled="yes" />
 </counters>
+
+<!-- when:
+          period = 20ms,
+          ini = at initialization
+          fin = at finalization
+          flush = whenever the event buffer flushes
+      who:
+          node = only the first task of the node executes the plugin, 
+                 whithin this task only the first thread.
+          task = only the first thread of the task executes the plugin for all the tasks in the app
+       so:
+          if located in the trace in the trace home directory only the name is requiered
+          otherwise the absolute path is needed
+-->
+<plugin enabled="yes" when="10us" who="task" so="mallinfo" />
+<plugin enabled="yes" when="10us" who="task" so="rusage" />
+<plugin enabled="yes" when="ini" so="/home/dbs/Documents/extrae_workspace/programs/plugin_manager/myreader.so"/>

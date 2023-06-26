@@ -1,4 +1,0 @@
-#ifndef _MEMUSAGE_H_INCLUDED_
-#define _MEMUSAGE_H_INCLUDED_
-
-#endif

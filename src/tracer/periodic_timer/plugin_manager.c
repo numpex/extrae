@@ -37,8 +37,8 @@
 #include "timer_manager.h"
 #include "wrapper.h"
 
-xtr_plugin_t * enabled_plugins = NULL;
-xtr_plugin_t * disabled_plugins = NULL;
+__thread xtr_plugin_t * enabled_plugins = NULL;
+__thread xtr_plugin_t * disabled_plugins = NULL;
 
 static inline void _push_back_plugin (xtr_plugin_t * node, xtr_plugin_t ** list_head)
 {
@@ -151,25 +151,29 @@ void _execute_callback(xtr_plugin_t * plugin, int type)
 xtr_plugin_t * xtr_plugin_load(char * so_name , int when, UINT64 period, int who)
 {
 	xtr_plugin_t * new_plugin = NULL;
-	new_plugin = (xtr_plugin_t *) xmalloc(sizeof(xtr_plugin_t));
-	if (new_plugin != NULL && so_name != NULL)
+
+	if ( PLUGIN_CURRENT_LEVEL <= who )
 	{
-		if (_load_callbacks(new_plugin, so_name) != ERROR )
-    {
-			new_plugin->info.read_at = when;
-			new_plugin->info.level = who;
-			if ( period > 0 && GET_READ_FN(new_plugin) != NULL )
+		new_plugin = (xtr_plugin_t *) xmalloc(sizeof(xtr_plugin_t));
+		if (new_plugin != NULL && so_name != NULL)
+		{
+			if (_load_callbacks(new_plugin, so_name) != ERROR )
 			{
-				new_plugin->info.period = period;
-				new_plugin->info.timer_handle = xtr_timer_configure(GET_READ_FN(new_plugin), who, period);
+				new_plugin->info.read_at = when;
+				new_plugin->info.level = who;
+				if ( period > 0 && GET_READ_FN(new_plugin) != NULL )
+				{
+					new_plugin->info.period = period;
+					new_plugin->info.timer_handle = xtr_timer_configure(GET_READ_FN(new_plugin), who, period);
+				}
+				_push_back_plugin(new_plugin, &enabled_plugins);
 			}
-		  _push_back_plugin(new_plugin, &enabled_plugins);
-    }
-    else
-    {
-      xfree(new_plugin);
-      new_plugin = NULL;
-    }
+			else
+			{
+				xfree(new_plugin);
+				new_plugin = NULL;
+			}
+		}
 	}
 	return new_plugin;
 }
