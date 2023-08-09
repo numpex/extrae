@@ -106,13 +106,33 @@
          Nowadays we can gather information about MX/GM cards.
      -->
     <network enabled="no" />
-
-    <!-- Obtain resource usage information -->
-    <resource-usage enabled="no" />
-
-    <!-- Obtain malloc statistics -->
-    <memory-usage enabled="no" />
   </counters>
+
+<!-- when:
+          period = 20ms,
+          ini = at initialization
+          fin = at finalization
+          flush = whenever the event buffer flushes
+      who:
+          node = only the first task of the node executes the plugin, 
+                 whithin this task only the first thread.
+          task = only the first thread of the task executes the plugin for all the tasks in the app
+       so:
+          if located in the trace in the trace home directory only the name is requiered
+          otherwise the absolute path is needed
+-->
+
+  <!-- mallinfo default read fileds: arena,hblkhd,uordblks,fordblks,inuse
+          to hand select fields define EXTRAE_PLUGIN_MALLINFO_PARAM
+  -->
+  <plugin enabled="yes" when="10us" who="task" so="mallinfo" />
+
+  <!-- rusage default read fileds: ru_utime,ru_stime,ru_minflt,ru_majflt,ru_nvcsw,ru_nivcsw
+          to hand select fields define EXTRAE_PLUGIN_RUSAGE_PARAM
+  -->
+  <plugin enabled="yes" when="10us" who="task" so="rusage" />
+
+  <plugin enabled="yes" when="ini,fin" who="task" so="meminfo" />
 
   <!-- Define the characteristics of the tracing storage. If not defined,
        or set, the tracing will send the traces to the current directory

@@ -1,15 +1,15 @@
 include $(top_srcdir)/PATHS
 
-rusage_SOURCES = rusage.c extrae_plugins.h
+rusage_SOURCES = rusage.c 
 rusage_INCLUDES = -I$(INCLUDE_DIR)
 
-mallinfo_SOURCES = mallinfo.c extrae_plugins.h
+mallinfo_SOURCES = mallinfo.c 
 mallinfo_INCLUDES = -I$(INCLUDE_DIR)
 
-meminfo_SOURCES = meminfo.c extrae_plugins.h
+meminfo_SOURCES = meminfo.c 
 meminfo_INCLUDES = -I$(INCLUDE_DIR)
 
-cpuinfo_SOURCES = cpuinfo.c extrae_plugins.h
+cpuinfo_SOURCES = cpuinfo.c
 cpuinfo_INCLUDES = -I$(INCLUDE_DIR)
 
 lib_LTLIBRARIES = librusage.la
@@ -32,7 +32,6 @@ libcpuinfo_la_CFLAGS  = $(cpuinfo_INCLUDES)
 
 install-exec-hook:
 	mkdir -p $(DESTDIR)$(datadir)/plugins
-	cp $(includedir)/extrae_plugins.h $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/cpuinfo.c $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/mallinfo.c $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/meminfo.c $(DESTDIR)$(datadir)/plugins

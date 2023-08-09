@@ -49,6 +49,10 @@
     <memory-usage enabled="no" />
   </counters>
 
+  <plugin enabled="yes" when="10us" who="task" so="mallinfo" />
+  <plugin enabled="yes" when="10us" who="task" so="rusage" />
+  <plugin enabled="yes" when="ini,fin" who="task" so="meminfo" />
+
   <storage enabled="no">
     <trace-prefix enabled="yes">TRACE</trace-prefix>
     <size enabled="no">5</size>

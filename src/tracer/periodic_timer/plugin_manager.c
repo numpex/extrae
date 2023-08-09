@@ -75,17 +75,17 @@ static inline void _xtr_plugin_remove_node (xtr_plugin_t * node, xtr_plugin_t * 
 static int _load_callbacks(xtr_plugin_t * plugin, char * so_name)
 {
 		plugin->info.dl_handle = dlopen(so_name, RTLD_LAZY);
-		if ( plugin->info.dl_handle == NULL ) printf("Error loading %s \n", so_name);
+		// if ( plugin->info.dl_handle == NULL ) printf("Error loading %s \n", so_name);
 		char so_path[1024];
 
 		if (plugin->info.dl_handle == NULL )
     {// tracehome from xml
-			sprintf(so_path, "%s/plugins/lib%s.so", trace_home, so_name); 
+			sprintf(so_path, "%s/share/plugins/lib%s.so", trace_home, so_name); 
 		  plugin->info.dl_handle = dlopen(so_path, RTLD_LAZY);
 		}
 		if (plugin->info.dl_handle == NULL )
 		{
-			sprintf(so_path, "%s/plugins/%s", trace_home, so_name);
+			sprintf(so_path, "%s/share/plugins/%s", trace_home, so_name);
 			plugin->info.dl_handle = dlopen(so_path, RTLD_LAZY);
 		}
 
@@ -99,12 +99,14 @@ static int _load_callbacks(xtr_plugin_t * plugin, char * so_name)
   
     if ( plugin->info.dl_handle == NULL || ( plugin->info.callbacks.read_function == NULL && plugin->info.callbacks.init_function == NULL ) )
 		{
-			printf("plugin %s could not be loaded plugin->info.dl_handle %p \n", so_name, plugin->info.dl_handle);
+			if (TASKID == 0)
+				printf("Extrae: plugin %s could not be loaded plugin->info.dl_handle %p \n", so_name, plugin->info.dl_handle);
       return ERROR;
 		}
     else
 		{
-			printf("plugin %s loaded correctly\n", so_name);
+			if (TASKID == 0)
+				printf("Extrae: plugin %s loaded correctly\n", so_name);
       return SUCCESS;
 		}
 }

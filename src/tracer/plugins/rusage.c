@@ -71,7 +71,6 @@ void Extrae_plugin_init( char ** ExtraeMetadata )
 
     //generate types and labels
     name = strtok(params, ",");
-    printf("name %s \n", name);
     while (name != NULL)
     {
         int found = rusageGetEvent(name, &active_events[numevents], &types[numevents]);
