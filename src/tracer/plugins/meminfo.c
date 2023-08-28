@@ -93,7 +93,6 @@ void Extrae_plugin_init ( char ** ExtraeMetadata )
   params = getenv ("EXTRAE_PLUGIN_MEMINFO_PARAM");
   if ( params == NULL )
   {
-    printf("plugin meminfo no params given using: MemTotal,MemFree \n");
     params = strdup ("MemTotal,MemFree");
   }
 

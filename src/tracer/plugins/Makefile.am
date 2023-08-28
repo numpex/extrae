@@ -32,11 +32,12 @@ libcpuinfo_la_CFLAGS  = $(cpuinfo_INCLUDES)
 
 install-exec-hook:
 	mkdir -p $(DESTDIR)$(datadir)/plugins
+	mkdir -p $(libdir)/plugins
 	cp $(srcdir)/cpuinfo.c $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/mallinfo.c $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/meminfo.c $(DESTDIR)$(datadir)/plugins
 	cp $(srcdir)/rusage.c $(DESTDIR)$(datadir)/plugins
-	cp $(libdir)/libmallinfo.so $(DESTDIR)$(datadir)/plugins
-	cp $(libdir)/libmeminfo.so $(DESTDIR)$(datadir)/plugins
-	cp $(libdir)/librusage.so $(DESTDIR)$(datadir)/plugins
-	cp $(libdir)/libcpuinfo.so $(DESTDIR)$(datadir)/plugins
+	cp $(libdir)/libmallinfo.so $(libdir)/plugins
+	cp $(libdir)/libmeminfo.so $(libdir)/plugins
+	cp $(libdir)/librusage.so $(libdir)/plugins
+	cp $(libdir)/libcpuinfo.so $(libdir)/plugins
