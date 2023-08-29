@@ -1068,6 +1068,11 @@ void PMPI_Init_Wrapper (MPI_Fint *ierror)
 {
 	iotimer_t MPI_Init_start_time, MPI_Init_end_time;
 
+	if( Extrae_is_initialized_Wrapper() != EXTRAE_NOT_INITIALIZED )
+	{
+		Backend_setInInstrumentation(0, TRUE);
+	}
+
 	hash_requests = xtr_hash_new(XTR_HASH_SIZE_MEDIUM, sizeof(xtr_hash_data_request_t), XTR_HASH_NONE);
 	hash_messages = xtr_hash_new(XTR_HASH_SIZE_TINY, sizeof(xtr_hash_data_message_t), XTR_HASH_NONE);
 
@@ -1182,6 +1187,11 @@ void PMPI_Init_thread_Wrapper (MPI_Fint *required, MPI_Fint *provided, MPI_Fint 
 /* Aquest codi nomes el volem per traceig sequencial i per mpi_init de fortran */
 {
 	iotimer_t MPI_Init_start_time, MPI_Init_end_time;
+
+	if( Extrae_is_initialized_Wrapper() != EXTRAE_NOT_INITIALIZED )
+	{
+		Backend_setInInstrumentation(0, TRUE);
+	}
 
         hash_requests = xtr_hash_new(XTR_HASH_SIZE_MEDIUM, sizeof(xtr_hash_data_request_t), XTR_HASH_LOCK);
         hash_messages = xtr_hash_new(XTR_HASH_SIZE_TINY, sizeof(xtr_hash_data_message_t), XTR_HASH_LOCK);
@@ -1947,6 +1957,11 @@ int MPI_Init_C_Wrapper (int *argc, char ***argv)
 	int val = 0;
 	iotimer_t MPI_Init_start_time, MPI_Init_end_time;
 
+	if( Extrae_is_initialized_Wrapper() != EXTRAE_NOT_INITIALIZED )
+	{
+		Backend_setInInstrumentation(0, TRUE);
+	}
+
 	hash_requests = xtr_hash_new(XTR_HASH_SIZE_MEDIUM, sizeof(xtr_hash_data_request_t), XTR_HASH_NONE);
 	hash_messages = xtr_hash_new(XTR_HASH_SIZE_TINY, sizeof(xtr_hash_data_message_t), XTR_HASH_NONE);
 
@@ -2059,6 +2074,11 @@ int MPI_Init_thread_C_Wrapper (int *argc, char ***argv, int required, int *provi
 {
 	int val = 0;
 	iotimer_t MPI_Init_start_time, MPI_Init_end_time;
+
+	if( Extrae_is_initialized_Wrapper() != EXTRAE_NOT_INITIALIZED )
+	{
+		Backend_setInInstrumentation(0, TRUE);
+	}
 
 	hash_requests = xtr_hash_new(XTR_HASH_SIZE_MEDIUM, sizeof(xtr_hash_data_request_t), XTR_HASH_LOCK);
 	hash_messages = xtr_hash_new(XTR_HASH_SIZE_TINY, sizeof(xtr_hash_data_message_t), XTR_HASH_LOCK);
