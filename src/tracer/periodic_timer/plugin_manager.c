@@ -80,12 +80,12 @@ static int _load_callbacks(xtr_plugin_t * plugin, char * so_name)
 
 		if (plugin->info.dl_handle == NULL )
     {// tracehome from xml
-			sprintf(so_path, "%s/share/plugins/lib%s.so", trace_home, so_name); 
+			sprintf(so_path, "%s/lib/plugins/lib%s.so", trace_home, so_name); 
 		  plugin->info.dl_handle = dlopen(so_path, RTLD_LAZY);
 		}
 		if (plugin->info.dl_handle == NULL )
 		{
-			sprintf(so_path, "%s/share/plugins/%s", trace_home, so_name);
+			sprintf(so_path, "%s/lib/plugins/%s", trace_home, so_name);
 			plugin->info.dl_handle = dlopen(so_path, RTLD_LAZY);
 		}
 
